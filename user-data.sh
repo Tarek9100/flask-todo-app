@@ -13,6 +13,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo systemctl start docker
 sudo systemctl enable docker
 
+
+# Add the user to the Docker group for permissions
+sudo usermod -aG docker ubuntu
+
 # Install Git to clone the repository
 sudo apt-get install -y git
 
