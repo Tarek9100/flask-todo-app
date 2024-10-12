@@ -1,22 +1,30 @@
 #!/bin/bash
 
-# Pull the latest Docker image from Docker Hub
-echo "Pulling the latest Docker image..."
-docker pull tarek910/flask-todo-app:latest
+PEM_PATH="./../gs-test2.pem"  
+LOCAL_PATH="./" 
+REMOTE_PATH="/home/ubuntu/flask-todo-app"  
+EC2_IP="18.185.174.159" 
+USERNAME="ubuntu"  
 
-# Stop and remove the existing container if it exists
-echo "Stopping and removing the existing container (if any)..."
-docker stop flask-todo-app || true
-docker rm flask-todo-app || true
+# 1. Transfer Code to Remote VM using SCP
+echo "Transferring code to remote VM..."
+scp -i $PEM_PATH -r $LOCAL_PATH $USERNAME@$EC2_IP:$REMOTE_PATH
 
-# Run the new container with appropriate settings
-echo "Deploying the new container..."
-docker run -d \
-  -p 5001:5001 \  # Map port 5001 on the host to 5001 on the container
-  --restart unless-stopped \  # Restart the container unless manually stopped
-  --name flask-todo-app \
-  tarek910/flask-todo-app:latest
+# 2. SSH into Remote VM and build Docker image
+echo "SSHing into remote VM and building Docker image..."
+ssh -i $PEM_PATH $USERNAME@$EC2_IP << EOF
+  cd $REMOTE_PATH
+  echo "Building Docker image..."
+  docker build -t flask-todo-app .
 
-echo "Deployment completed successfully! Application should be running on port 5001."
+  echo "Stopping and removing any existing container..."
+  docker stop flask-todo-app || true
+  docker rm flask-todo-app || true
 
+  echo "Running the Docker container..."
+  docker run -d -p 5000:5000 flask-todo-app
 
+  echo "Deployment completed successfully!"
+EOF
+
+echo "Script finished successfully!"
