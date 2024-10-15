@@ -3,28 +3,43 @@
 PEM_PATH="./../gs-test2.pem"  
 LOCAL_PATH="./" 
 REMOTE_PATH="/home/ubuntu/flask-todo-app"  
-EC2_IP="18.185.174.159" 
+EC2_IP="3.68.108.135" 
 USERNAME="ubuntu"  
+
+# Create a tarball of essential files while excluding unnecessary ones
+echo "Creating an archive of the essential files..."
+tar --exclude='.git' --exclude='node_modules' --exclude='venv' -czf flask-todo-app.tar.gz .
 
 # 1. Transfer Code to Remote VM using SCP
 echo "Transferring code to remote VM..."
-scp -i $PEM_PATH -r $LOCAL_PATH $USERNAME@$EC2_IP:$REMOTE_PATH
+scp -i $PEM_PATH flask-todo-app.tar.gz $USERNAME@$EC2_IP:/home/$USERNAME
 
 # 2. SSH into Remote VM and build Docker image
 echo "SSHing into remote VM and building Docker image..."
 ssh -i $PEM_PATH $USERNAME@$EC2_IP << EOF
+  # Ensure remote directory exists
+  mkdir -p $REMOTE_PATH
+  mv /home/$USERNAME/flask-todo-app.tar.gz $REMOTE_PATH
   cd $REMOTE_PATH
+  tar -xzf flask-todo-app.tar.gz  # Extract the archive
+  
+  # Building Docker image
   echo "Building Docker image..."
-  docker build -t flask-todo-app .
+  sudo docker build -t flask-todo-app .
 
+  # Stop and remove existing container
   echo "Stopping and removing any existing container..."
-  docker stop flask-todo-app || true
-  docker rm flask-todo-app || true
+  sudo docker stop flask-todo-app || true
+  sudo docker rm flask-todo-app || true
 
+  # Run the container with proper port exposure
   echo "Running the Docker container..."
-  docker run -d -p 5000:5000 flask-todo-app
+  sudo docker run -d -p 5001:5001 --name flask-todo-app flask-todo-app
 
   echo "Deployment completed successfully!"
 EOF
+
+# Cleanup local archive
+rm flask-todo-app.tar.gz
 
 echo "Script finished successfully!"

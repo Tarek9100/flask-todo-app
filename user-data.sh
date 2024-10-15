@@ -30,4 +30,4 @@ cd flask-todo-app
 sudo chmod +x deploy.sh
 
 # Run the deploy script
-./deploy.sh
+#./deploy.sh #Cannot implement this step as the public-ip is ephermal
