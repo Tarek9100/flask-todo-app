@@ -26,17 +26,12 @@ The Flask to-do app is a minimal application that allows users to manage their t
     cd flask-todo-app
     ```
 
-2. Build the Docker image:
-    ```bash
-    ./build.sh
-    ```
-
-3. Run the Docker container:
+2. Run the Docker container using docker compose:
     ```bash
     ./run.sh
     ```
 
-4. Visit `http://localhost:5000` in your browser to access the app.
+3. Visit `http://localhost:5000` in your browser to access the app.
 
 ## Purpose
 

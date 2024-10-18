@@ -2,25 +2,27 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
-PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-DATABASE = os.path.join(PROJECT_ROOT, 'todo.db')
-
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////" + DATABASE
-db = SQLAlchemy(app)
 
+# Configure the PostgreSQL database URL from the environment variable
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
     complete = db.Column(db.Boolean)
 
+# Ensure tables are created before the first request
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 @app.route("/")
 def index():
     todo_list = Todo.query.all()
     return render_template("index.html", todo_list=todo_list)
-
 
 @app.route("/add", methods=["POST"])
 def add():
@@ -30,14 +32,12 @@ def add():
     db.session.commit()
     return redirect(url_for("index"))
 
-
 @app.route("/complete/<string:todo_id>")
 def complete(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
     todo.complete = not todo.complete
     db.session.commit()
     return redirect(url_for("index"))
-
 
 @app.route("/delete/<string:todo_id>")
 def delete(todo_id):
@@ -46,8 +46,6 @@ def delete(todo_id):
     db.session.commit()
     return redirect(url_for("index"))
 
-
 if __name__ == "__main__":
-    if not os.path.exists(DATABASE):
-        db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Run the app on host 0.0.0.0 and port 5000
+    app.run(debug=True, host='0.0.0.0', port=5000)

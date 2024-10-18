@@ -23,19 +23,14 @@ ssh -i $PEM_PATH $USERNAME@$EC2_IP << EOF
   cd $REMOTE_PATH
   tar -xzf flask-todo-app.tar.gz  # Extract the archive
   
-  # Building Docker image
-  echo "Building Docker image..."
-  sudo docker build -t flask-todo-app .
-
   # Stop and remove existing container
   echo "Stopping and removing any existing container..."
   sudo docker stop flask-todo-app || true
   sudo docker rm flask-todo-app || true
 
-  # Run the container with proper port exposure
-  echo "Running the Docker container..."
-  sudo docker run -d -p 5001:5001 --name flask-todo-app flask-todo-app
 
+  echo "Running the Docker containers..."
+  sudo docker compose up --build
   echo "Deployment completed successfully!"
 EOF
 
