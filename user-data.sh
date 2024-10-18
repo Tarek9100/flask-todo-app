@@ -31,6 +31,9 @@ git clone https://github.com/Tarek9100/flask-todo-app.git
 # Navigate to the application directory
 cd flask-todo-app
 
+# Ensure the ubuntu user owns the necessary files
+sudo chown -R ubuntu:ubuntu /home/ubuntu/flask-todo-app
+
 # Stop and remove any existing container
 sudo docker-compose down || true
 
@@ -79,5 +82,9 @@ EOF
 # Make the backup script executable
 chmod +x /home/ubuntu/flask-todo-app/backup.sh
 
-# Add the backup script to cron to run daily at 2 AM
-(crontab -l 2>/dev/null; echo "0 2 * * * /home/ubuntu/flask-todo-app/backup.sh") | crontab -
+# Ensure the cron service is started and enabled
+sudo systemctl start cron
+sudo systemctl enable cron
+
+# Add the backup script to cron to run daily at 2 AM for the ubuntu user
+sudo -u ubuntu crontab -l 2>/dev/null | { cat; echo "0 2 * * * /home/ubuntu/flask-todo-app/backup.sh >> /home/ubuntu/flask-todo-app/cron.log 2>&1"; } | sudo -u ubuntu crontab -
